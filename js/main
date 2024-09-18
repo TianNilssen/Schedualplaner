@@ -1,0 +1,105 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // Load the default home page
+    loadHomePage();
+
+    // Set up navigation links
+    document.getElementById('home-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        loadHomePage();
+    });
+
+    document.getElementById('login-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        loadLoginPage();
+    });
+
+    document.getElementById('schedule-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        loadSchedulePage();
+    });
+});
+
+function loadHomePage() {
+    const mainContent = document.getElementById('main-content');
+    mainContent.innerHTML = `
+        <h1>Welcome to the Schedule Planner</h1>
+        <p>View our opening hours or log in to manage your schedule.</p>
+    `;
+}
+
+function loadLoginPage() {
+    const mainContent = document.getElementById('main-content');
+    mainContent.innerHTML = `
+        <h2>Login</h2>
+        <form id="login-form">
+            <input type="text" id="username" placeholder="Username" required />
+            <input type="password" id="password" placeholder="Password" required />
+            <button type="submit">Login</button>
+        </form>
+    `;
+
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
+}
+
+function loadSchedulePage() {
+    const mainContent = document.getElementById('main-content');
+    mainContent.innerHTML = `
+        <h2>Opening Hours</h2>
+        <div id="schedule"></div>
+    `;
+
+    // Fetch the schedule from the API
+    fetch('https://your-api-endpoint.com/api/schedule')
+        .then(response => response.json())
+        .then(data => {
+            const scheduleDiv = document.getElementById('schedule');
+            // Display the schedule data
+            data.forEach(entry => {
+                const entryDiv = document.createElement('div');
+                entryDiv.textContent = `Date: ${entry.date}, Open: ${entry.open ? 'Yes' : 'No'}`;
+                scheduleDiv.appendChild(entryDiv);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching schedule:', error);
+        });
+}
+
+function handleLogin(event) {
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    // Send login request to the API
+    fetch('https://your-api-endpoint.com/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Redirect to the user dashboard
+            loadUserDashboard(data.user);
+        } else {
+            alert('Login failed');
+        }
+    })
+    .catch(error => {
+        console.error('Error during login:', error);
+    });
+}
+
+function loadUserDashboard(user) {
+    const mainContent = document.getElementById('main-content');
+    mainContent.innerHTML = `
+        <h2>Welcome, ${user.username}</h2>
+        <p>You have worked ${user.hoursWorked} hours this month.</p>
+        <button id="logout-button">Logout</button>
+    `;
+
+    document.getElementById('logout-button').addEventListener('click', () => {
+        // Handle logout
+        loadHomePage();
+    });
+}
